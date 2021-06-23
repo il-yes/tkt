@@ -1,0 +1,4 @@
+# bin/initialize
+bin/console --no-interaction doctrine:schema:drop --force --full-database
+bin/console --no-interaction doctrine:migrations:migrate
+bin/console --no-interaction doctrine:fixtures:load
