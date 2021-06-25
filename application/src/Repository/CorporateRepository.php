@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Corporate;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 /**
  * @method Corporate|null find($id, $lockMode = null, $lockVersion = null)
@@ -21,6 +22,7 @@ class CorporateRepository extends ServiceEntityRepository
 
     private $name;
     private $order;
+    private $filter = [];
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -37,28 +39,43 @@ class CorporateRepository extends ServiceEntityRepository
 
     }
 
-    public function findPaginatedCorporates($page, int $limit): array
+    public function findPaginatedCorporates($page, int $limit) : Paginator 
     {
-        $query = $this->createQueryBuilder('c')
-                    ->from(Corporate::class, 'Corporate')
+        $query = $this
+                    ->createQueryBuilder('c')
                     ->orderBy(
-                        'Corporate.name', 
-                        $this->order !== null ? $this->order : 'ASC'
-                    );
+                        'c.id', 
+                        $this->order !== null ? $this->order : 'ASC');
+
+        if($this->name !== null) {
+            $query
+                ->andWhere('c.name = :name')
+                ->setParameter('name', $this->name);
+        }
+
+        if(count($this->filter) > 0) {
+            foreach ($this->filter as $key => $filter) {
+                $query
+                    ->andWhere($filter['where'])
+                    ->setParameter($key, $filter['param']);
+            }
+        }
+
 
         if(!$this->hasFilter) {
             $query->setFirstResult(($page * $limit) - $limit);
         }           
         $query->setMaxResults($limit);
 
-        if ($this->name !== null) {
-            $query
-                ->andWhere('c.name = :name')
-                ->setParameter('name', $this->name);
-        }
-
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
         $this->hasFilter = false;
-        return $query->getQuery()->getResult();
+
+        return $paginator;
+    }
+
+    public function findAllQueryBuilder()
+    {
+        return $this->createQueryBuilder('corporate');
     }
 
     public function byName(string $aName): self
@@ -71,6 +88,17 @@ class CorporateRepository extends ServiceEntityRepository
     public function byOrder(string $order): self
     {
         $this->order = $order;
+        $this->hasFilter = true;
+        return $this;
+    }
+
+    public function byFilter($filters): self
+    {
+        foreach ($filters as $key => $value) {
+            $this->filter[$key]['where'] = 'c.'. $key .' = :'. $key;
+            $this->filter[$key]['param'] = $value;
+        }
+
         $this->hasFilter = true;
         return $this;
     }
