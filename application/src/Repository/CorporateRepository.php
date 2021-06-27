@@ -60,11 +60,8 @@ class CorporateRepository extends ServiceEntityRepository
                     ->setParameter($key, $filter['param']);
             }
         }
-
-
-        if(!$this->hasFilter) {
-            $query->setFirstResult(($page * $limit) - $limit);
-        }           
+      
+        $query->setFirstResult(($page * $limit) - $limit);
         $query->setMaxResults($limit);
 
         $paginator = new Paginator($query, $fetchJoinCollection = true);
@@ -73,10 +70,6 @@ class CorporateRepository extends ServiceEntityRepository
         return $paginator;
     }
 
-    public function findAllQueryBuilder()
-    {
-        return $this->createQueryBuilder('corporate');
-    }
 
     public function byName(string $aName): self
     {

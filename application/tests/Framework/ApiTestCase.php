@@ -30,6 +30,7 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class ApiTestCase extends KernelTestCase
 {
+    const API_URI = 'http://localhost:8000';
     private static $staticClient;
 
     private static $history;
@@ -49,7 +50,7 @@ class ApiTestCase extends KernelTestCase
     public static function setUpBeforeClass(): void
     {
         self::$staticClient = new Client([
-            'base_uri' => 'http://localhost:8000',
+            'base_uri' => self::API_URI,
             'timeout' => 2,0
         ]);
         //self::$history = new HistoryPlugin();

@@ -27,7 +27,7 @@ class PaginationFactory
 
     public function createCollection(
     	Paginator $qb, Request $request, $route, array $routeParams = array()
-    )
+    ): PaginatedCollection
     {
         $page = (int)$request->query->get('page', 1);
         $limit = (int)$request->query->get('limit', CorporateRepository::LIMIT);

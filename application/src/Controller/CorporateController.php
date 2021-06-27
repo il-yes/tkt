@@ -38,101 +38,25 @@ class CorporateController extends AbstractController
      */
     public function index(Request $request): Response
     {
+        $page   = (int)$request->query->get('page', 1);
+        $limit  = (int)$request->query->get('limit', CorporateRepository::LIMIT);
+        $order  = $request->query->get('order', 'asc');
         $filter = \json_decode($request->query->get('filter'));
-        
-        $page = (int)$request->query->get('page', 1);
-        $limit = (int)$request->query->get('limit', CorporateRepository::LIMIT);
-        $order = $request->query->get('order', 'asc');
 
-        if ($request->query->get('name') !== null) {
-            $this->corporateRepository->byName($request->query->get('name'));
-        }
-        if ($request->query->get('order') !== null) {
-            $this->corporateRepository->byOrder($order);
-        }
-        if ($request->query->get('filter') !== null) {
-            $this->corporateRepository->byFilter($filter);
-        }
+        $this->initializeParams($request, $order, $filter, $this->corporateRepository);
 
-        $qb = $this->corporateRepository
-                    ->findPaginatedCorporates(
-                        $page, 
-                        $limit
-                    );
+        $qb = $this
+                ->corporateRepository
+                ->findPaginatedCorporates(
+                    $page, 
+                    $limit
+                );
 
         $paginatedCollection = $this
                                 ->paginationFactory
                                 ->createCollection($qb, $request, 'corporate_list');
 
-
-        //dd($paginatedCollection);
-
-        $response = new Response(
-            $this->serializer->serialize([
-                'pagination' => [
-                    'page' => $paginatedCollection->page(),
-                    'pages' => $paginatedCollection->pages(),
-                    'limit' => $paginatedCollection->total(),
-                    'total' => $paginatedCollection->count(),
-                    '_links' => $paginatedCollection->_links()
-                ],
-                'collection' => $paginatedCollection->items()                
-            ], 'json'),
-            200, 
-            ['Content-Type' => 'application/json']
-        );
-
-        return $response;
-        
-
-        /* Total collection
-        $total = count($response);
-        $pagination = [
-            'page' => $page,
-            'pages' => ceil($total / $limit),
-            'total' => $total,
-            'limit' => $limit,
-            'metaData' => [
-                'order' => $order,
-                'sector' => $request->query->get('sector', '')
-            ]
-        ];
-
-        return new Response(
-            $this->serializer->serialize([
-                'pagination' => $pagination,
-                'collection' => $collection
-            ], 'json'), 
-            200, 
-            ['Content-Type' => 'application/json']
-        );  */ 
-
-        /* --------- 2eme methode --------------------------------- 
-        $qb = $this->corporateRepository->findAllQueryBuilder();
-        dd(
-            new QueryAdapter()
-        );
-        $pagerfanta = new Pagerfanta(
-            new QueryAdapter($qb)
-        );
-        $pagerfanta->setMaxPerPage($limit);
-        $pagerfanta->setCurrentPage($page);
-
-        $collection = [];
-        foreach ($pagerfanta->getCurrentPageResults() as $result) {
-            $collection[] = $result;
-        }
-
-        $response = new Response(
-            $this->serializer->serialize([
-                'total' => $pagerfanta->getNbResults(),
-                'count' => count($collection),
-                'collection' => $collection,
-            ], 'json'),
-        200);
-
-        return $response; */
-        
+        return $this->createApiResponse($paginatedCollection);
     }
 
     /**
@@ -147,6 +71,19 @@ class CorporateController extends AbstractController
         return new Response($corp, 200, ['Content-Type' => 'application/json']);
     }
 
+    private function initializeParams(Request $request, $order, $filter, $repository)
+    {
+        if($request->query->get('name') !== null) {
+            $repository->byName($request->query->get('name'));
+        }
+        if($request->query->get('order') !== null) {
+            $repository->byOrder($order);
+        }
+        if($request->query->get('filter') !== null) {
+            $repository->byFilter($filter);
+        }
+    }
+
     private function serialize($jsonObject)
     {
         $encoders = [new JsonEncoder()]; // If no need for XmlEncoder
@@ -159,5 +96,23 @@ class CorporateController extends AbstractController
                 return $object->getId();
             }
         ]);
+    }
+
+    private function createApiResponse($paginator)
+    {
+        return new Response(
+            $this->serializer->serialize([
+                'pagination' => [
+                    'page' => $paginator->page(),
+                    'pages' => $paginator->pages(),
+                    'limit' => $paginator->total(),
+                    'total' => $paginator->count(),
+                    '_links' => $paginator->_links()
+                ],
+                'collection' => $paginator->items()                
+            ], 'json'),
+            200, 
+            ['Content-Type' => 'application/json']
+        );
     }
 }
