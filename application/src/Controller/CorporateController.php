@@ -40,7 +40,7 @@ class CorporateController extends AbstractController
     {
         $page   = (int)$request->query->get('page', 1);
         $limit  = (int)$request->query->get('limit', CorporateRepository::LIMIT);
-        $order  = $request->query->get('order', 'asc');
+        $order  = $request->query->get('order', 'desc');
         $filter = \json_decode($request->query->get('filter'));
 
         $this->initializeParams($request, $order, $filter, $this->corporateRepository);
