@@ -8,30 +8,23 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\Pagination\PaginatedCollection;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use App\Repository\CorporateRepository;
+use App\Repository\FindCorporatesQuery;
 
 
 class PaginationFactory
 {
 	private $router;
 
-    private $corporateRepository;
-
-    public function __construct(
-    	RouterInterface $router, CorporateRepository $repository
-    )
+    public function __construct(RouterInterface $router)
     {
         $this->router = $router;
-        $this->corporateRepository = $repository;
     }
 
+
     public function createCollection(
-    	Paginator $qb, Request $request, $route, array $routeParams = array()
+    	Paginator $qb, Request $request, $route, $page, $limit, array $routeParams = array()
     ): PaginatedCollection
-    {
-        $page = (int)$request->query->get('page', 1);
-        $limit = (int)$request->query->get('limit', CorporateRepository::LIMIT);
-    	
+    {    	
         $paginatedCollection = new PaginatedCollection($qb, $page, $limit);
 
          // make sure query parameters are included in pagination links

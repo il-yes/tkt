@@ -29,3 +29,7 @@ services:
     App\Service\Pagination\PaginationFactory:
         arguments:
             - "@router.default"
+
+    App\Repository\FindCorporatesQuery:
+        arguments:
+            - "@doctrine.orm.entity_manager"

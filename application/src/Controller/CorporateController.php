@@ -15,49 +15,93 @@ use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 use App\Service\Pagination\PaginatedCollection;
 use App\Service\Pagination\PaginationFactory;
+use App\Repository\FindCorporatesQuery;
+use App\Repository\FindCorpsQuery;
 
-class CorporateController extends AbstractController
+class CorporateController extends BaseController
 {
     private $corporateRepository;
-    private  $serializer;
     private  $paginationFactory;
+    private  $findCorporatesQuery;
+    private  $findCorpsQuery;
 
     public function __construct(
         CorporateRepository $repository, 
         SerializerInterface $serializer,
-        PaginationFactory $paginationFactory
+        PaginationFactory $paginationFactory,
+        FindCorporatesQuery $findCorporatesQuery,
+        FindCorpsQuery $findCorpsQuery
     )
     {
         $this->corporateRepository = $repository;
         $this->serializer = $serializer;
         $this->paginationFactory = $paginationFactory;
+        $this->findCorpsQuery = $findCorpsQuery;
     }
+
+    /**
+     * @Route("/corporates", name="corporate_list")
+     */
+    public function corporates(Request $request): Response
+    {
+        $page   = (int)$request->query->get('page', 1);
+        $limit  = (int)$request->query->get(
+            'limit', $this->findCorporatesQuery::LIMIT
+        );
+        $order  = $request->query->get('order', 'desc');
+        $filter = \json_decode($request->query->get('filter'));
+
+        $this->findCorporatesQuery
+             ->initializeParams($request, $order, $filter);
+
+        $qb = $this
+                ->findCorporatesQuery
+                ->execute($page, $limit);
+
+        $paginatedCollection = $this
+                                ->paginationFactory
+                                ->createCollection($qb, $request, 'corporate_list', $page, $limit);
+
+        return $this->createApiResponseForReactAdmin(
+            0, $paginatedCollection, 'corporates'
+        );
+    }
+
 
     /**
      * @Route("/api/corporates", name="corporate_list")
      */
     public function index(Request $request): Response
     {
-        $page   = (int)$request->query->get('page', 1);
-        $limit  = (int)$request->query->get('limit', CorporateRepository::LIMIT);
-        $order  = $request->query->get('order', 'desc');
-        $filter = \json_decode($request->query->get('filter'));
+        $range  = \json_decode($request->query->get('range'));
 
-        $this->initializeParams($request, $order, $filter, $this->corporateRepository);
+        $this
+            ->findCorpsQuery
+            ->init(
+                $range, 
+                \json_decode($request->query->get('sort')), 
+                \json_decode($request->query->get('page')),
+                \json_decode($request->query->get('perPage')), 
+                (array) \json_decode($request->query->get('filter'))
+            );
 
-        $qb = $this
-                ->corporateRepository
-                ->findPaginatedCorporates(
-                    $page, 
-                    $limit
-                );
+        $qb = $this->findCorpsQuery->execute();
 
         $paginatedCollection = $this
                                 ->paginationFactory
-                                ->createCollection($qb, $request, 'corporate_list');
-
-        return $this->createApiResponse($paginatedCollection);
+                                ->createCollection(
+                                    $qb, 
+                                    $request, 
+                                    'corporate_list', 
+                                    $this->findCorpsQuery->getPage(),
+                                    $this->findCorpsQuery->getPerPage()
+                                );
+    //dd($this->findCorpsQuery);
+        return $this->createApiResponseForReactAdmin(
+            $this->findCorpsQuery->getRange()[0], $paginatedCollection, 'corporates'
+        );
     }
+
 
     /**
      * @Route("/api/corporates/{id}", name="corporate_show")
@@ -69,33 +113,6 @@ class CorporateController extends AbstractController
         );
 
         return new Response($corp, 200, ['Content-Type' => 'application/json']);
-    }
-
-    private function initializeParams(Request $request, $order, $filter, $repository)
-    {
-        if($request->query->get('name') !== null) {
-            $repository->byName($request->query->get('name'));
-        }
-        if($request->query->get('order') !== null) {
-            $repository->byOrder($order);
-        }
-        if($request->query->get('filter') !== null) {
-            $repository->byFilter($filter);
-        }
-    }
-
-    private function serialize($jsonObject)
-    {
-        $encoders = [new JsonEncoder()]; // If no need for XmlEncoder
-        $normalizers = [new ObjectNormalizer()];
-        $serializer = new Serializer($normalizers, $encoders);
-
-        // Serialize your object in Json
-        return  $serializer->serialize($jsonObject, 'json', [
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ]);
     }
 
     private function createApiResponse($paginator)
@@ -112,7 +129,12 @@ class CorporateController extends AbstractController
                 'collection' => $paginator->items()                
             ], 'json'),
             200, 
-            ['Content-Type' => 'application/json']
+            [
+                'Content-Type' => 'application/json',
+                'Access-Control-Expose-Headers' => 'X-Total-Count',
+                'X-Total-Count' => $paginator->count()  
+            ]
         );
     }
+
 }
