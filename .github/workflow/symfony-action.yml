@@ -1,0 +1,58 @@
+name: Full CI process for Symfony 5
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  ES_HTTP_PORT: 5000
+  
+jobs:
+  php-unit-and-functional-tests:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: true
+      matrix:
+        php-versions: ['7.4']
+    steps:
+      # —— Setup Github actions —————————————————————————————————————————————
+      # https://github.com/actions/checkout (official)
+      - name: Git checkout placeholder-service
+        uses: actions/checkout@v2
+      # https://github.com/shivammathur/setup-php (community)
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          coverage: none
+          tools: composer:v2
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, mbstring, pdo
+        env:
+          update: true
+      - name: Check PHP Version
+        run: php -v
+      # —— Composer —————————————————————————————————————————————————————————
+      - name: Install Composer dependencies
+        run: |
+          cd application
+          composer install
+      # —— Symfony ——————————————————————————————————————————————————————————
+      - name: Check the Symfony console
+        run:  |
+          cd application
+          bin/console -V
+      # —— Code style —— (Based on this package: https://github.com/OskarStark/php-cs-fixer-ga)
+      - name: PHP-CS-Fixer
+        uses: docker://oskarstark/php-cs-fixer-ga
+        with:
+          args: --config=.php_cs.dist --diff --dry-run
+      ## —— Tests ———————————————————————————————————————————————————————————
+      - name: Run functionnal and unit tests
+        run: |
+          cd application
+          cp .env.ci .env.test
+          cp .env.ci .env
+          cp phpunit.ci.xml phpunit.xml
+          composer test
