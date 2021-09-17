@@ -39,10 +39,6 @@ jobs:
           cd application
           composer install
       # —— Symfony ——————————————————————————————————————————————————————————
-      - name: Check Symfony requirements
-        run:  |
-          cd application
-          vendor/bin/requirements-checker
       - name: Check the Symfony console
         run:  |
           cd application
