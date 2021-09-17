@@ -40,6 +40,6 @@ If you want to destroy the containers in order to rebuild them right after:
 
 `symfony serve -d`
 
-9. On your web browser, go to:
+9. On your web browser, go to :
 
 `http://localhost:5000`
