@@ -21,6 +21,8 @@ class BaseController extends AbstractController
 
  	protected function createApiResponseForReactAdmin($start, $paginator, $namespace)
     {
+        // some comments....
+        
         return new Response(
             $this->serializer->serialize($paginator->items(), 'json'),
             200, 
