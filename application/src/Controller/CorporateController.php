@@ -97,6 +97,8 @@ class CorporateController extends BaseController
                                     $this->findCorpsQuery->getPerPage()
                                 );
     //dd($this->findCorpsQuery);
+
+        //return $this->createApiResponse($paginatedCollection);
         return $this->createApiResponseForReactAdmin(
             $this->findCorpsQuery->getRange()[0], $paginatedCollection, 'corporates'
         );

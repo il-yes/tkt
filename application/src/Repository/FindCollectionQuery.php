@@ -119,7 +119,7 @@ class FindCollectionQuery
     {
         if($aFilter) {
             foreach ($aFilter as $key => $value) {
-                $this->filter[$key]['where'] = static::$className .'.'. strtolower($key) .' = :'. $key;
+                $this->filter[$key]['where'] = static::$tableName .'.'. strtolower($key) .' = :'. $key;
                 $this->filter[$key]['param'] = $value;
             }            
         }
