@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 
 class HomeController extends AbstractController
 {
-    /** KernelInterface $appKernel */
+    /** KernelInterface $appKernel*/
     private $appKernel;
 
     public function __construct(KernelInterface $appKernel)
