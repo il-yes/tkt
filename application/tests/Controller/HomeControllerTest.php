@@ -5,9 +5,6 @@ namespace Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\CorporateRepository;
-use App\Entity\Corporate;
-use Doctrine\ORM\EntityManager;
 
 
 class HomeControllerTest extends WebTestCase
