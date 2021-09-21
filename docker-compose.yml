@@ -16,6 +16,13 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tkt
+  mysql_test:
+    image: 'mysql'
+    container_name: "mysql_test"
+    environment:
+        MYSQL_ROOT_PASSWORD: root
+    ports:
+        - '3306'
   phpmyadmin:
     container_name: "phpMyAdmin"
     depends_on:

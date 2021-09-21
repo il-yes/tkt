@@ -29,7 +29,7 @@ class CorporateControllerTest extends ApiTestCase
     /**
     * @test
     */
-    public function shouldrenderAllCorporates()
+    public function shouldRenderAllCorporates()
     {
         $this->visit('/api/corporates')
                 ->assertResponseOk();
