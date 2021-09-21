@@ -53,6 +53,7 @@ jobs:
       ## —— Tests ———————————————————————————————————————————————————————————
       - name: Run functionnal and unit tests
         run: |
+          cd application
           cp phpunit.xml.dist phpunit.xml
           php bin/console doctrine:schema:drop --force --env=test
           php bin/console doctrine:database:create --force --env=test
