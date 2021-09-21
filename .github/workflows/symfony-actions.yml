@@ -50,9 +50,14 @@ jobs:
           args: --config=.php_cs.dist --diff --dry-run
       ## —— Tests ———————————————————————————————————————————————————————————
       - name: Run functionnal and unit tests
+        variables: 
+          DATABASE_URL: 'mysql://root:root@mysql:3306/tkt_test?serverVersion=5.7'
         run: |
           cd application
           cp .env.ci .env.test
           cp .env.ci .env
           cp phpunit.ci.xml phpunit.xml
+          bin/console doctrine:schema:drop --force --env=test
+          bin/console doctrine:database:create --force --env=test
+          bin/console doctrine:migrations:migrate --env=test --no-interaction
           composer test

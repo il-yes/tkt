@@ -25,10 +25,15 @@ class HomeController extends AbstractController
         $corporates = $this->corporates();
         $today = new \Datetime('2007-12-31');
 
-        return $this->json([
+        return $this->render('home/index.html.twig', [
             'message' => 'Welcome to your new controller!',
             'path' => 'src/Controller/HomeController.php',
         ]);
+
+        /*return $this->json([
+            'message' => 'Welcome to your new controller!',
+            'path' => 'src/Controller/HomeController.php',
+        ]);*/
     }
 
     private function corporates(): array
