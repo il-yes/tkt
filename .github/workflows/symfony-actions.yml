@@ -55,4 +55,4 @@ jobs:
         run: |
           cd application
           cp phpunit.xml.dist phpunit.xml
-          composer test
+          ./vendor/bin/phpunit tests --testdox
