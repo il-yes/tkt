@@ -54,7 +54,7 @@ jobs:
       - name: Run functionnal and unit tests
         run: |
           cd application
-          cp phpunit.ci.xml phpunit.xml
+          cp phpunit.xml.dist phpunit.xml
           bin/console doctrine:schema:drop --force --env=test
           bin/console doctrine:database:create --force --env=test
           bin/console doctrine:migrations:migrate --env=test --no-interaction
