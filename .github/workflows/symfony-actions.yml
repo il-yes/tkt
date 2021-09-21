@@ -55,7 +55,6 @@ jobs:
         run: |
           cd application
           cp phpunit.xml.dist phpunit.xml
-          php bin/console doctrine:schema:drop --force --env=test
           php bin/console doctrine:database:create --force --env=test
           php bin/console doctrine:migrations:migrate --env=test --no-interaction
           ./vendor/bin/phpunit tests --testdox
