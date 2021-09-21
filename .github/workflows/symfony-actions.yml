@@ -50,6 +50,9 @@ jobs:
           args: --config=.php_cs.dist --diff --dry-run
       ## —— Tests ———————————————————————————————————————————————————————————
       - name: Run functionnal and unit tests
+        services:
+          env: 
+            - DATABASE_URL: 'mysql://root:root@mysql:3306/tkt_test?serverVersion=5.7'
         run: |
           cd application
           cp .env.ci .env.test
